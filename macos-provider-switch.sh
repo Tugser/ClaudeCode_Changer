@@ -138,6 +138,7 @@ t() {
         SETTINGS_UPDATED) echo "settings.json updated -> %s" ;;
         ENV_OVERRIDE_NOTE) echo "Note: Environment variables (ANTHROPIC_AUTH_TOKEN/BASE_URL) override settings.json." ;;
         ACTIVE_BASE) echo "Active base_url: %s" ;;
+        ACTIVE_BASE_NONE) echo "none" ;;
         ACTIVE_TOKEN) echo "Active token: %s" ;;
         ACTIVE_TOKEN_NONE) echo "Active token: none" ;;
         PROMPT_MINIMAX_AUTH_HEADER) echo "MiniMax auth header (x-api-key/Authorization) [%s]: " ;;
@@ -188,6 +189,7 @@ t() {
         PROVIDER_MINIMAX) echo "3) MiniMax" ;;
         INVALID_CHOICE) echo "Invalid choice" ;;
         MSG_LANGUAGE_SET) echo "Language set: %s" ;;
+        *) echo "$key" ;;
       esac
       ;;
     *)
@@ -196,6 +198,7 @@ t() {
         SETTINGS_UPDATED) echo "settings.json güncellendi -> %s" ;;
         ENV_OVERRIDE_NOTE) echo "Not: Ortam değişkenleri (ANTHROPIC_AUTH_TOKEN/BASE_URL) varsa settings.json'ı override eder." ;;
         ACTIVE_BASE) echo "Aktif base_url: %s" ;;
+        ACTIVE_BASE_NONE) echo "yok" ;;
         ACTIVE_TOKEN) echo "Aktif token: %s" ;;
         ACTIVE_TOKEN_NONE) echo "Aktif token: yok" ;;
         PROMPT_MINIMAX_AUTH_HEADER) echo "MiniMax auth header (x-api-key/Authorization) [%s]: " ;;
@@ -246,6 +249,7 @@ t() {
         PROVIDER_MINIMAX) echo "3) MiniMax" ;;
         INVALID_CHOICE) echo "Geçersiz seçim" ;;
         MSG_LANGUAGE_SET) echo "Dil ayarlandi: %s" ;;
+        *) echo "$key" ;;
       esac
       ;;
   esac
@@ -327,7 +331,7 @@ maybe_backup_anthropic() {
 
 get_env_value() {
   # Key önceliği: argüman > KEY env
-  key="${1:-${KEY-}}"
+  local key="${1:-${KEY-}}"
   if [[ -z "$key" || ! -f "$SETTINGS" ]]; then
     return
   fi
@@ -339,19 +343,24 @@ get_env_value() {
 }
 
 current_summary() {
-  local base auth
+  local base auth base_display
   base=$(SETTINGS="$SETTINGS" KEY="ANTHROPIC_BASE_URL" get_env_value)
   auth=$(SETTINGS="$SETTINGS" KEY="ANTHROPIC_AUTH_TOKEN" get_env_value)
-  printf "$(t ACTIVE_BASE)\n" "${base:-(yok)}"
+  if [[ -n "$base" ]]; then
+    base_display="$base"
+  else
+    base_display=$(t ACTIVE_BASE_NONE)
+  fi
+  printf "$(t ACTIVE_BASE)\n" "$base_display"
   if [[ -n "$auth" ]]; then
-    printf "$(t ACTIVE_TOKEN)\n" "$(echo "$auth" | sed 's/./*/g')"
+    printf "$(t ACTIVE_TOKEN)\n" "********"
   else
     printf "%s\n" "$(t ACTIVE_TOKEN_NONE)"
   fi
 }
 
 write_minimax() {
-  local token existing base_url auth_value auth_header input_header
+  local token existing base_url auth_value auth_header input_header language auth_header_json
   auth_header=$(load_auth_header)
   if [[ -z "$auth_header" ]]; then
     auth_header="x-api-key"
@@ -389,7 +398,14 @@ write_minimax() {
     printf "%s\n" "$(t MSG_INVALID_MINIMAX)"; return 1; }
   store_secret "minimax-api-key" "$token"
   base_url="https://api.minimax.io/anthropic"
-  save_minimax_config "$auth_header"
+  language="$LANG_CHOICE"
+  if [[ "$language" != "tr" && "$language" != "en" ]]; then
+    language=$(load_language)
+  fi
+  if [[ "$language" != "tr" && "$language" != "en" ]]; then
+    language="en"
+  fi
+  save_minimax_config "$auth_header" "$language"
   if [[ "$auth_header" == "Authorization" ]]; then
     auth_value="Bearer $token"
   else
@@ -414,7 +430,11 @@ write_minimax() {
     printf "$(t SETTINGS_UPDATED)\n" "$SETTINGS"
     printf "%s\n" "$(t ENV_OVERRIDE_NOTE)"
   else
-    write_env_json "{\n  \"env\": {\n    \"ANTHROPIC_BASE_URL\": \"$base_url\",\n    \"ANTHROPIC_AUTH_TOKEN\": \"$auth_value\",\n    \"ANTHROPIC_AUTH_HEADER\": \"Authorization\",\n    \"API_TIMEOUT_MS\": \"3000000\",\n    \"CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC\": 1,\n    \"ANTHROPIC_MODEL\": \"MiniMax-M2.1\",\n    \"ANTHROPIC_SMALL_FAST_MODEL\": \"MiniMax-M2.1\",\n    \"ANTHROPIC_DEFAULT_SONNET_MODEL\": \"MiniMax-M2.1\",\n    \"ANTHROPIC_DEFAULT_OPUS_MODEL\": \"MiniMax-M2.1\",\n    \"ANTHROPIC_DEFAULT_HAIKU_MODEL\": \"MiniMax-M2.1\"\n  }\n}"
+    auth_header_json=""
+    if [[ "$auth_header" == "Authorization" ]]; then
+      auth_header_json=",\n    \"ANTHROPIC_AUTH_HEADER\": \"Authorization\""
+    fi
+    write_env_json "{\n  \"env\": {\n    \"ANTHROPIC_BASE_URL\": \"$base_url\",\n    \"ANTHROPIC_AUTH_TOKEN\": \"$auth_value\"$auth_header_json,\n    \"API_TIMEOUT_MS\": \"3000000\",\n    \"CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC\": 1,\n    \"ANTHROPIC_MODEL\": \"MiniMax-M2.1\",\n    \"ANTHROPIC_SMALL_FAST_MODEL\": \"MiniMax-M2.1\",\n    \"ANTHROPIC_DEFAULT_SONNET_MODEL\": \"MiniMax-M2.1\",\n    \"ANTHROPIC_DEFAULT_OPUS_MODEL\": \"MiniMax-M2.1\",\n    \"ANTHROPIC_DEFAULT_HAIKU_MODEL\": \"MiniMax-M2.1\"\n  }\n}"
   fi
   current_summary
 }
@@ -439,6 +459,8 @@ write_glm() {
       printf "%s\n" "$(t MSG_EMPTY_KEY)" && return 1
     fi
   fi
+  token=$(sanitize_token "$token") || {
+    printf "%s\n" "$(t MSG_INVALID_GLM)"; return 1; }
   store_secret "glm-api-key" "$token"
   maybe_backup_anthropic
   if settings_can_merge; then
@@ -459,7 +481,7 @@ write_glm() {
 }
 
 activate_minimax() {
-  local token base_url auth_value auth_header
+  local token base_url auth_value auth_header auth_header_json
   auth_header=$(load_auth_header)
   if [[ -z "$auth_header" ]]; then
     auth_header="x-api-key"
@@ -496,7 +518,11 @@ activate_minimax() {
     printf "$(t SETTINGS_UPDATED)\n" "$SETTINGS"
     printf "%s\n" "$(t ENV_OVERRIDE_NOTE)"
   else
-    write_env_json "{\n  \"env\": {\n    \"ANTHROPIC_BASE_URL\": \"$base_url\",\n    \"ANTHROPIC_AUTH_TOKEN\": \"$auth_value\",\n    \"ANTHROPIC_AUTH_HEADER\": \"Authorization\",\n    \"API_TIMEOUT_MS\": \"3000000\",\n    \"CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC\": 1,\n    \"ANTHROPIC_MODEL\": \"MiniMax-M2.1\",\n    \"ANTHROPIC_SMALL_FAST_MODEL\": \"MiniMax-M2.1\",\n    \"ANTHROPIC_DEFAULT_SONNET_MODEL\": \"MiniMax-M2.1\",\n    \"ANTHROPIC_DEFAULT_OPUS_MODEL\": \"MiniMax-M2.1\",\n    \"ANTHROPIC_DEFAULT_HAIKU_MODEL\": \"MiniMax-M2.1\"\n  }\n}"
+    auth_header_json=""
+    if [[ "$auth_header" == "Authorization" ]]; then
+      auth_header_json=",\n    \"ANTHROPIC_AUTH_HEADER\": \"Authorization\""
+    fi
+    write_env_json "{\n  \"env\": {\n    \"ANTHROPIC_BASE_URL\": \"$base_url\",\n    \"ANTHROPIC_AUTH_TOKEN\": \"$auth_value\"$auth_header_json,\n    \"API_TIMEOUT_MS\": \"3000000\",\n    \"CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC\": 1,\n    \"ANTHROPIC_MODEL\": \"MiniMax-M2.1\",\n    \"ANTHROPIC_SMALL_FAST_MODEL\": \"MiniMax-M2.1\",\n    \"ANTHROPIC_DEFAULT_SONNET_MODEL\": \"MiniMax-M2.1\",\n    \"ANTHROPIC_DEFAULT_OPUS_MODEL\": \"MiniMax-M2.1\",\n    \"ANTHROPIC_DEFAULT_HAIKU_MODEL\": \"MiniMax-M2.1\"\n  }\n}"
   fi
   current_summary
 }
@@ -520,6 +546,8 @@ activate_glm() {
     printf "%s\n" "$(t MSG_GLM_KEY_NOT_FOUND)"
     return 1
   fi
+  token=$(sanitize_token "$token") || {
+    printf "%s\n" "$(t MSG_INVALID_GLM)"; return 1; }
   maybe_backup_anthropic
   if settings_can_merge; then
     set_env_string "ANTHROPIC_AUTH_TOKEN" "$token"
@@ -672,4 +700,4 @@ if [[ -z "$LANG_CHOICE" ]]; then
   fi
 fi
 
-main "$@"
+main
