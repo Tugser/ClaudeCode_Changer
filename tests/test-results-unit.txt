@@ -1,0 +1,99 @@
+==========================================
+Running All Unit Tests
+==========================================
+
+Running: test_sanitize_token.sh
+----------------------------------------
+==========================================
+Unit Tests for sanitize_token()
+==========================================
+
+Running: Valid ASCII token (10/10) ... ✓ PASS
+Running: Bearer prefix stripped (10/10) ... ✓ PASS
+Running: Lowercase bearer stripped (10/10) ... ✓ PASS
+Running: Whitespace fails validation ... ✓ PASS
+Running: Empty token fails ... FAIL: Command succeeded but should have failed
+✗ FAIL
+Running: Non-ASCII fails ... ✓ PASS
+Running: Emoji fails ... ✓ PASS
+Running: Tab character fails ... ✓ PASS
+Running: Newline fails ... FAIL: Command succeeded but should have failed
+✗ FAIL
+Running: Mixed Bearer case (10/10) ... FAIL: Command failed with exit code 1
+✗ FAIL
+Running: Extremely long token (10/10) ... ✓ PASS
+Running: Special valid characters (10/10) ... ✓ PASS
+Running: Only whitespace fails ... FAIL: Command succeeded but should have failed
+✗ FAIL
+Running: Real-world Anthropic token (10/10) ... ✓ PASS
+
+==========================================
+Test Results:
+  Total:   14
+  Passed:  10
+  Failed:  4
+==========================================
+✗ FAILED
+
+Running: test_secret_storage.sh
+----------------------------------------
+==========================================
+Unit Tests for Secret Storage
+Platform: macos
+==========================================
+
+Running: File backend: store and read ... ✓ PASS
+Running: File backend: multiple accounts ... ✓ PASS
+Running: File backend: update existing ... ✓ PASS
+Running: File backend: read non-existent ... ✓ PASS
+Running: File backend: secret exists check ... ✓ PASS
+Running: File backend: special characters ... ✓ PASS
+Running: File backend: file permissions ... ✓ PASS
+Running: File backend: JSON validity ... ✓ PASS
+Running: macOS: store and read ... ✓ PASS
+Running: macOS: bearer token ... ✓ PASS
+Running: macOS: exists check ... ✓ PASS
+Running: Linux: store and read ... ✓ PASS
+Running: Linux: bearer token ... ✓ PASS
+Running: Linux: exists check ... ✓ PASS
+
+==========================================
+Test Results:
+  Total:   14
+  Passed:  14
+  Failed:  0
+==========================================
+✓ PASSED
+
+Running: test_settings_json.sh
+----------------------------------------
+==========================================
+Unit Tests for settings.json Functions
+==========================================
+
+Running: set_env_string() sets value ... ✓ PASS
+Running: set_env_string() handles multiple keys ... ✓ PASS
+Running: remove_env_key() removes key ... ✓ PASS
+Running: remove_env_key() handles non-existent key ... ✓ PASS
+Running: get_env_value() returns empty for missing file ... ✓ PASS
+Running: clear_provider_overrides() clears all keys ... ✓ PASS
+Running: clear_provider_overrides() preserves other keys ...     Expected: 'custom_value'
+    Actual:   ''
+✗ FAIL
+Running: Update existing value ... ✓ PASS
+Running: Special characters in value ... ✓ PASS
+Running: Empty value ... ✓ PASS
+Running: Settings file created ... ✓ PASS
+Running: JSON validity maintained ... ✓ PASS
+
+==========================================
+Test Results:
+  Total:   12
+  Passed:  11
+  Failed:  1
+==========================================
+✗ FAILED
+
+==========================================
+2 test suite(s) failed
+==========================================

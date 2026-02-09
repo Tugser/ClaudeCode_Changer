@@ -190,30 +190,42 @@ announce_secret_backend() {
 store_file_secret() {
   local account="$1" value="$2"
   python3 - "$SECRETS_FILE" "$account" "$value" <<'PY'
+import fcntl
 import json
 import os
 import sys
+import tempfile
 
 path = sys.argv[1]
 account = sys.argv[2]
 value = sys.argv[3]
 data = {}
+parent = os.path.dirname(path) or "."
+os.makedirs(parent, exist_ok=True)
+lock_path = f"{path}.lock"
 
-if os.path.exists(path):
+with open(lock_path, "w", encoding="utf-8") as lock_fh:
+  fcntl.flock(lock_fh.fileno(), fcntl.LOCK_EX)
+  if os.path.exists(path):
+    try:
+      with open(path, "r", encoding="utf-8") as fh:
+        loaded = json.load(fh)
+      if isinstance(loaded, dict):
+        data = {str(k): str(v) for k, v in loaded.items()}
+    except Exception:
+      data = {}
+
+  data[account] = value
+  fd, tmp = tempfile.mkstemp(prefix=".provider-secrets.", dir=parent)
   try:
-    with open(path, "r", encoding="utf-8") as fh:
-      loaded = json.load(fh)
-    if isinstance(loaded, dict):
-      data = {str(k): str(v) for k, v in loaded.items()}
-  except Exception:
-    data = {}
-
-data[account] = value
-tmp = f"{path}.tmp"
-with open(tmp, "w", encoding="utf-8") as fh:
-  json.dump(data, fh, ensure_ascii=False, indent=2)
-  fh.write("\n")
-os.replace(tmp, path)
+    with os.fdopen(fd, "w", encoding="utf-8") as fh:
+      json.dump(data, fh, ensure_ascii=False, indent=2)
+      fh.write("\n")
+    os.replace(tmp, path)
+  finally:
+    if os.path.exists(tmp):
+      os.unlink(tmp)
+  fcntl.flock(lock_fh.fileno(), fcntl.LOCK_UN)
 PY
   chmod 600 "$SECRETS_FILE"
 }
@@ -318,11 +330,20 @@ secret_exists() {
 sanitize_token() {
   local raw="$1"
   raw=$(printf "%s" "$raw" | sed 's/^[[:space:]]*//; s/[[:space:]]*$//')
-  raw=$(printf "%s" "$raw" | sed -E 's/^[Bb]earer[[:space:]]+//')
+  raw=$(printf "%s" "$raw" | sed -E 's/^[Bb][Ee][Aa][Rr][Ee][Rr][[:space:]]+//')
+  if [[ "$raw" == *$'\n'* || "$raw" == *$'\r'* ]]; then
+    return 1
+  fi
+  if [[ -z "$raw" || ${#raw} -lt 8 ]]; then
+    return 1
+  fi
   if printf "%s" "$raw" | LC_ALL=C grep -q '[^ -~]'; then
     return 1
   fi
   if printf "%s" "$raw" | grep -q '[[:space:]]'; then
+    return 1
+  fi
+  if ! printf "%s" "$raw" | LC_ALL=C grep -Eq '^[A-Za-z0-9._:@%+=!-]+$'; then
     return 1
   fi
   printf "%s" "$raw"
@@ -912,4 +933,6 @@ if [[ -z "$LANG_CHOICE" ]]; then
   fi
 fi
 
-main
+if [[ "${BASH_SOURCE[0]-$0}" == "$0" ]]; then
+  main
+fi

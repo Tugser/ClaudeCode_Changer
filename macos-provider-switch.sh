@@ -43,12 +43,21 @@ sanitize_token() {
   # Trim whitespace
   raw=$(printf "%s" "$raw" | sed 's/^[[:space:]]*//; s/[[:space:]]*$//')
   # Strip Bearer prefix if present
-  raw=$(printf "%s" "$raw" | sed -E 's/^[Bb]earer[[:space:]]+//')
+  raw=$(printf "%s" "$raw" | sed -E 's/^[Bb][Ee][Aa][Rr][Ee][Rr][[:space:]]+//')
+  if [[ "$raw" == *$'\n'* || "$raw" == *$'\r'* ]]; then
+    return 1
+  fi
+  if [[ -z "$raw" || ${#raw} -lt 8 ]]; then
+    return 1
+  fi
   # Validate ASCII + no whitespace
   if printf "%s" "$raw" | LC_ALL=C grep -q '[^ -~]'; then
     return 1
   fi
   if printf "%s" "$raw" | grep -q '[[:space:]]'; then
+    return 1
+  fi
+  if ! printf "%s" "$raw" | LC_ALL=C grep -Eq '^[A-Za-z0-9._:@%+=!-]+$'; then
     return 1
   fi
   printf "%s" "$raw"
@@ -275,7 +284,7 @@ ensure_settings_json() {
 settings_can_merge() {
   have_plutil || return 1
   ensure_settings_json
-  /usr/bin/plutil -lint "$SETTINGS" >/dev/null 2>&1
+  /usr/bin/plutil -convert json -o /dev/null "$SETTINGS" >/dev/null 2>&1
 }
 
 set_env_string() {
@@ -298,7 +307,7 @@ clear_provider_overrides() {
     rm -f "$SETTINGS"
     return
   fi
-  if ! /usr/bin/plutil -lint "$SETTINGS" >/dev/null 2>&1; then
+  if ! /usr/bin/plutil -convert json -o /dev/null "$SETTINGS" >/dev/null 2>&1; then
     rm -f "$SETTINGS"
     return
   fi
@@ -700,4 +709,6 @@ if [[ -z "$LANG_CHOICE" ]]; then
   fi
 fi
 
-main
+if [[ "${BASH_SOURCE[0]-$0}" == "$0" ]]; then
+  main
+fi

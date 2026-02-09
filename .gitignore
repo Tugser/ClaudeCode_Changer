@@ -1,1 +1,55 @@
+# ClaudeCode_Changer .gitignore
+
+# OS-specific
 .DS_Store
+Thumbs.db
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# VSCode
+.vscode/
+
+# Bash history
+.bash_history
+
+# Windows
+*.exe
+*.dll
+*.bat
+*.ps1
+
+# macOS
+*.app
+
+# Node
+node_modules/
+
+# Project-specific
+# Gizli klasörler
+.claude/
+.legacy/
+.secrets/
+.provider/
+
+# Backup/config
+*.backup.json
+provider-secrets.json
+provider-config.json
+settings.json
+
+# Logs
+*.log
+
+# Ignore all hidden files/folders
+.*
+
+# Exception: allow .gitignore itself
+!.gitignore
+
+# Ignore all markdown files except README.md
+*.md
+!README.md

@@ -2,5 +2,13 @@
   "env": {
     "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1"
   },
+  "permissions": {
+    "allow": [
+      "Bash(npm install:*)",
+      "Bash(claude-flow --version)",
+      "Bash(claude-flow config init:*)",
+      "Bash(cloc:*)"
+    ]
+  },
   "teammateMode": "tmux"
 }
