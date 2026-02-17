@@ -431,11 +431,11 @@ write_minimax() {
     fi
     set_env_string "API_TIMEOUT_MS" "3000000"
     set_env_int "CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC" 1
-    set_env_string "ANTHROPIC_MODEL" "MiniMax-M2.1"
-    set_env_string "ANTHROPIC_SMALL_FAST_MODEL" "MiniMax-M2.1"
-    set_env_string "ANTHROPIC_DEFAULT_SONNET_MODEL" "MiniMax-M2.1"
-    set_env_string "ANTHROPIC_DEFAULT_OPUS_MODEL" "MiniMax-M2.1"
-    set_env_string "ANTHROPIC_DEFAULT_HAIKU_MODEL" "MiniMax-M2.1"
+    set_env_string "ANTHROPIC_MODEL" "MiniMax-M2.5"
+    set_env_string "ANTHROPIC_SMALL_FAST_MODEL" "MiniMax-M2.5"
+    set_env_string "ANTHROPIC_DEFAULT_SONNET_MODEL" "MiniMax-M2.5"
+    set_env_string "ANTHROPIC_DEFAULT_OPUS_MODEL" "MiniMax-M2.5"
+    set_env_string "ANTHROPIC_DEFAULT_HAIKU_MODEL" "MiniMax-M2.5"
     printf "$(t SETTINGS_UPDATED)\n" "$SETTINGS"
     printf "%s\n" "$(t ENV_OVERRIDE_NOTE)"
   else
@@ -443,7 +443,7 @@ write_minimax() {
     if [[ "$auth_header" == "Authorization" ]]; then
       auth_header_json=",\n    \"ANTHROPIC_AUTH_HEADER\": \"Authorization\""
     fi
-    write_env_json "{\n  \"env\": {\n    \"ANTHROPIC_BASE_URL\": \"$base_url\",\n    \"ANTHROPIC_AUTH_TOKEN\": \"$auth_value\"$auth_header_json,\n    \"API_TIMEOUT_MS\": \"3000000\",\n    \"CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC\": 1,\n    \"ANTHROPIC_MODEL\": \"MiniMax-M2.1\",\n    \"ANTHROPIC_SMALL_FAST_MODEL\": \"MiniMax-M2.1\",\n    \"ANTHROPIC_DEFAULT_SONNET_MODEL\": \"MiniMax-M2.1\",\n    \"ANTHROPIC_DEFAULT_OPUS_MODEL\": \"MiniMax-M2.1\",\n    \"ANTHROPIC_DEFAULT_HAIKU_MODEL\": \"MiniMax-M2.1\"\n  }\n}"
+    write_env_json "{\n  \"env\": {\n    \"ANTHROPIC_BASE_URL\": \"$base_url\",\n    \"ANTHROPIC_AUTH_TOKEN\": \"$auth_value\"$auth_header_json,\n    \"API_TIMEOUT_MS\": \"3000000\",\n    \"CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC\": 1,\n    \"ANTHROPIC_MODEL\": \"MiniMax-M2.5\",\n    \"ANTHROPIC_SMALL_FAST_MODEL\": \"MiniMax-M2.5\",\n    \"ANTHROPIC_DEFAULT_SONNET_MODEL\": \"MiniMax-M2.5\",\n    \"ANTHROPIC_DEFAULT_OPUS_MODEL\": \"MiniMax-M2.5\",\n    \"ANTHROPIC_DEFAULT_HAIKU_MODEL\": \"MiniMax-M2.5\"\n  }\n}"
   fi
   current_summary
 }
@@ -519,11 +519,11 @@ activate_minimax() {
     fi
     set_env_string "API_TIMEOUT_MS" "3000000"
     set_env_int "CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC" 1
-    set_env_string "ANTHROPIC_MODEL" "MiniMax-M2.1"
-    set_env_string "ANTHROPIC_SMALL_FAST_MODEL" "MiniMax-M2.1"
-    set_env_string "ANTHROPIC_DEFAULT_SONNET_MODEL" "MiniMax-M2.1"
-    set_env_string "ANTHROPIC_DEFAULT_OPUS_MODEL" "MiniMax-M2.1"
-    set_env_string "ANTHROPIC_DEFAULT_HAIKU_MODEL" "MiniMax-M2.1"
+    set_env_string "ANTHROPIC_MODEL" "MiniMax-M2.5"
+    set_env_string "ANTHROPIC_SMALL_FAST_MODEL" "MiniMax-M2.5"
+    set_env_string "ANTHROPIC_DEFAULT_SONNET_MODEL" "MiniMax-M2.5"
+    set_env_string "ANTHROPIC_DEFAULT_OPUS_MODEL" "MiniMax-M2.5"
+    set_env_string "ANTHROPIC_DEFAULT_HAIKU_MODEL" "MiniMax-M2.5"
     printf "$(t SETTINGS_UPDATED)\n" "$SETTINGS"
     printf "%s\n" "$(t ENV_OVERRIDE_NOTE)"
   else
@@ -531,7 +531,7 @@ activate_minimax() {
     if [[ "$auth_header" == "Authorization" ]]; then
       auth_header_json=",\n    \"ANTHROPIC_AUTH_HEADER\": \"Authorization\""
     fi
-    write_env_json "{\n  \"env\": {\n    \"ANTHROPIC_BASE_URL\": \"$base_url\",\n    \"ANTHROPIC_AUTH_TOKEN\": \"$auth_value\"$auth_header_json,\n    \"API_TIMEOUT_MS\": \"3000000\",\n    \"CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC\": 1,\n    \"ANTHROPIC_MODEL\": \"MiniMax-M2.1\",\n    \"ANTHROPIC_SMALL_FAST_MODEL\": \"MiniMax-M2.1\",\n    \"ANTHROPIC_DEFAULT_SONNET_MODEL\": \"MiniMax-M2.1\",\n    \"ANTHROPIC_DEFAULT_OPUS_MODEL\": \"MiniMax-M2.1\",\n    \"ANTHROPIC_DEFAULT_HAIKU_MODEL\": \"MiniMax-M2.1\"\n  }\n}"
+    write_env_json "{\n  \"env\": {\n    \"ANTHROPIC_BASE_URL\": \"$base_url\",\n    \"ANTHROPIC_AUTH_TOKEN\": \"$auth_value\"$auth_header_json,\n    \"API_TIMEOUT_MS\": \"3000000\",\n    \"CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC\": 1,\n    \"ANTHROPIC_MODEL\": \"MiniMax-M2.5\",\n    \"ANTHROPIC_SMALL_FAST_MODEL\": \"MiniMax-M2.5\",\n    \"ANTHROPIC_DEFAULT_SONNET_MODEL\": \"MiniMax-M2.5\",\n    \"ANTHROPIC_DEFAULT_OPUS_MODEL\": \"MiniMax-M2.5\",\n    \"ANTHROPIC_DEFAULT_HAIKU_MODEL\": \"MiniMax-M2.5\"\n  }\n}"
   fi
   current_summary
 }
